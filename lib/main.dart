@@ -2,10 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'database.dart';
 
-void main() {
-
-  Hive.initFlutter();
+void main() async{
+  await Hive.initFlutter();
+  await Hive.openBox('myBox');
   runApp(CalculatorApp());
 }
 
@@ -25,6 +26,8 @@ class CalculatorApp extends StatelessWidget {
 class CalculatorHome extends StatefulWidget {
   const CalculatorHome({super.key});
 
+  
+
   @override
   _CalculatorHomeState createState() => _CalculatorHomeState();
 }
@@ -34,7 +37,17 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   final TextEditingController _num2Controller = TextEditingController();
   String _result = '';
   String _selectedOperation = '+';
-  final List<String> _history = [];
+  List<String> _history = [];
+  
+  final ToDoDatabase db = ToDoDatabase();
+
+  @override
+  void initState() {
+    super.initState();
+    // Load the history when the app starts
+    db.loadData();
+    _history = db.history;
+  }
 
   void _calculate() {
     double? num1 = double.tryParse(_num1Controller.text.trim());
@@ -78,6 +91,8 @@ class _CalculatorHomeState extends State<CalculatorHome> {
     setState(() {
       _result = '✅ $resultText';
       _history.insert(0, resultText);
+      db.history = _history;
+      db.updateDatabase();
     });
   }
 
@@ -87,6 +102,8 @@ class _CalculatorHomeState extends State<CalculatorHome> {
       _num2Controller.clear();
       _result = '';
       _history.clear();
+      db.history = _history;
+      db.updateDatabase();
     });
   }
 
